@@ -1,0 +1,99 @@
+---
+title: "Final Project Proposal"
+author: "Ellen Bledsoe"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Final Project Proposal
+
+Answering the questions in this document are worth 20 points for Question 5 in Week 9's Assignment.
+
+## Where to Find Data
+
+**If you have your own data from a research project, use it!**
+
+If you don't have your own data, here are some suggestions for where to find data:
+
+1.  From your lab group
+
+If you are working in a lab group, you can almost certainly find data to work with from your lab! Ask your PI or other lab members if you can use their data for this project. It is often helpful to have data that relates somewhat to a project or topic you are familiar with.
+
+2.  From me (actually from the National Phenology Network)!
+
+I currently have a project helping the National Phenology Network take data collected by communitiy members and cleaning it up so it can be integrated into the NPN database.
+
+If you choose to work with one of these datasets, I can give you some guidance on what the end product should look like.
+
+You can find a list of the dataset options [here](https://archive.usanpn.org/results/dataset-list).
+
+3.  From the "Data is Plural" Archive
+
+[Data is Plural](https://www.data-is-plural.com/) is a weekly newsletter about complied datasets that people have found. They have an archive of all of the datasets that have been included in the newsletters, which is nearly 2000.
+
+Just because the datasets have been compiled does not mean that they are clean! I've used a few of them in class as demonstrations.
+
+4.  From an agency, NGO, or non-profit
+
+If you have contacts in a local, state, or federal agency or non-profit, they likely have some languishing data floating around that you can clean up.
+
+5.  A data repository
+
+There are many data repositories where you can find data. I would recommend sticking to some of the other options above to keep your search a bit more constrained, but feel free to ultimately use any dataset you find that you would like to use.
+
+## Project Guidelines
+
+As a reminder, the general guidelines for the final project that the project will need to include core concepts covered in a certain number of weeks (6 for WFSC 496B, 10 for WFSC 596B), bringing together many aspects of what we will have learned through the course of the semester.
+
+The final project for this course is worth 300 points (WFSC 496B) or 500 points (WFSC 596B).
+
+## Questions
+
+The following answers are not binding! You can change your final project as much as you'd like from what you propose here.
+
+Answering these questions is meant to get you thinking about what data you would like to use and what tasks you might perform with the data.
+
+Note: Your data set does not need to be ecological in nature if you have another interest. It should also not be a dataset that we have used in class (see me if you have questions).
+
+1.  What data are you planning to use for the final project? Describe the data: its contents, its format(s), one or more dataframes, etc. If you have a link to the dataset, please include it. If you have a file that you can upload, please add it to the assignment submission.
+
+    I am going to use data I recorded for the Lopez-Hoffman lab. The data sets are focused on different projects done under NEPA, and if they do or not have have Environmental Justice (EJ) communities within the area that the project is taking place, and if the papers mention that in their Environmental Impact Statements (EIS). The sheets also have information on what kind of decsion the EIS is making (ie., transportation, water works, gas, recreation), and the type of action the EIS is (ie., plan, project, proposal). I have 10 of these data sets on different Excel sheets in different files. They are just separated by when I filled them out, but all the sheets have the same column names.
+
+2.  Does this data need to be cleaned in any way to make it tidy? If so, what needs to occur?
+
+    All the data was imputed in the same format so I don't think there will be much cleaning to do, although since the data sets are not separated by anything significant, I will probably want to merge them together.
+
+3.  Speaking generally, what tasks will you perform with this dataset? It might include tasks that we have not yet covered how to accomplish in class, but come up with a general plan that you would like to follow.
+
+    I have data on the government agency that creates each EIS, so I am thinking about looking at if certain agencies are more or less likely to have an EJ community, and if they do or do not have plans for mitigation if there are disproportionate impacts on the EJ communities. I could also see if different action and decision types are more likely to create disproportionate impacts. Both of these things are going to require me putting the data sets together. I will probably filter for projects that I said do have disproportionate impacts and make a new data set from that. Then I can filter by different variables such as agency, EJ communities, impacts, action type, and decision type.
+
+4.  One of the requirements of the final project is to make some type of plot using `ggplot2` with the data. What do you plan to plot from your data?
+
+    From what I do with the data sets above, I can make plots of different variables against whether or not disproportionate impacts are present. All my data is categorical so I will be limited to plots that fit that. My first idea is to create a bar plot that compares the agencies and how many of them have disproportionate impacts. I could also make plots comparing the different action and decision types.
+
+    (Questions: Would I have to make sure every agency has the same amount of rows of data to compare them?)
+
+# Reflection
+
+This reflection is worth 25 points, separate from your Week 9 assignment. Reflections are graded for completion only.
+
+Write about 5 sentences addressing *at least* one of the following questions.
+
+-   What has worked well for you in this course for you so far?
+-   What has been particularly challenging for you so far?
+-   Is there anything that I can do to help your learning in the course?
+-   Other reflections about the content of the module that you would like to share.
+
+*Answer*: So far in the class I think I have been doing well and understanding the material. I think coding along with the class and working with people in the class work really well for me. I think working with git will take a bit for me to catch on 100%, but it is going good so far. I am excited to work with data I worked with in my job with NEPAccess in R!
+
+## Submitting this File
+
+1.  Create a new repository in the class GitHub organization for your final project. Use the naming convention "LastName_FinalProject"
+2.  Connect the repository to an RStudio project
+3.  Create a series of appropriate sub-directories in your RStudio Project, including a `documents` folder.
+4.  Move this file to the documents folder.
+5.  Stage, commit, and push this document (and sub-directory) to GitHub with a descriptive commit message.
