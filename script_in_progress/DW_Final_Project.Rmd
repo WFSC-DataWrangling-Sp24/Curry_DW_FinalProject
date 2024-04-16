@@ -1,0 +1,39 @@
+---
+title: "Data Wrangling Final Project"
+author: "Kaya Curry"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Wrangling Final Project: Working with NEPAccess Environmental Justice Data
+
+------------------------------------------------------------------------
+
+*\*Reminde*r: At the beginning of the document to introduce your dataset and the general tasks that you will be completing in the following code chunks (problem decomposition).
+
+## Set-Up:
+
+Loading necessary packages and reading in my data.
+
+```{r}
+# I am starting by running the tidyverse package, which has a lot of the functions I will need to complete the project.
+library(tidyverse)
+
+# creating an empty vector f
+all_files <- list.files(path = "../data_raw", pattern = "Sheet1.csv")
+all_files
+
+# using a for loop to read in data
+# i want to read in each csv
+csvs <- length(all_files)
+store_csv <- vector()
+
+for (i in 1:all_files) {
+  filename <- all_files[i]
+  data <- read.csv(filename)
+}
+```
