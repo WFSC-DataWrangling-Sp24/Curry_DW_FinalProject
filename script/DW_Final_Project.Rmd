@@ -1,0 +1,242 @@
+---
+title: "Data Wrangling Final Project"
+author: "Kaya Curry"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Wrangling Final Project: NEPAccess Environmental Justice Data
+
+------------------------------------------------------------------------
+
+For the final project, I decided to use data I collected for the Laura Lopez-Hoffman lab as an undergraduate research assistant working on the NEPAccess database. The goal of NEPAccess is to make documents produced by government agencies under the National Environmental Policy Act (NEPA) more accessible to the public and to agencies. Visit <https://about.nepaccess.org/1700070378341/> for more information on NEPA and NEPAccess!
+
+I will specifically be using some data I collected analyzing how **environmental justice** is used in papers (called Environmental Impact Statements) produced by different agencies within the NEPA process. Environmental justice as it pertains to NEPA refers to how agencies acknowledge environmental justice communities, if the proposed project has disproportionate impacts on environmental justice communities, and how the agencies will mitigate those impacts if applicable. Whether an environmental justice community exists is defined within the paper.
+
+The spreadsheets I will be uploading have a lot of data that could be analyzed! I have decided to focus on the different agencies and how they go about dealing with environmental justice. Do some agencies work in areas that have more environmental justice than others? Do some agencies include no mention of environmental justice than others? Do some agencies put more effort into creating mitigation strategies than others? I hope to get insight into these questions through cleaning, analyzing, and visualizing my data.
+
+## Set-Up: Creating the Data Frame
+
+To analyze my data I will be using base R and the tidyverse package. The tidyverse package has a lot of functions I will use to clean my data, and it includes ggplot2, which I will use to visualize my data later one.
+
+I already have downloaded each spreadsheet I am going to use as .csv files and put them in my data_raw folder of my R project. To create the data frame I will read in each .csv file with the read.csv function, and name them to save them to my environment. Then I will combine the data frames using bind_rows to create one big data frame, of all the sheets I have worked on, called all_data.
+
+```{r}
+# loading in the tidyverse
+library(tidyverse)
+
+# reading in all the data sheets seperately 
+sheet1 <- read.csv("../data_raw/Kaya_1st_20_Sheet_2022_11_4_900_CW.xlsx - Sheet1.csv")
+
+sheet2 <- read.csv("../data_raw/Kaya_2nd_20_2022_12_9_1723_KC.xlsx - Sheet1.csv")
+
+sheet3 <- read.csv("../data_raw/Kaya_3rd_20_2022_1_20_2055_KC.xlsx - Sheet1.csv")
+
+sheet4 <- read.csv("../data_raw/Kaya_4th_20_2022_01_29_1845_KC.xlsx - Sheet1.csv")
+
+sheet5 <- read.csv("../data_raw/Kaya_5th_20_2022_2_8_1617_KC.xlsx - Sheet1.csv")
+
+sheet6 <- read.csv("../data_raw/Kaya_6th_20_2022_2_12_1604_KC.xlsx - Sheet1.csv")
+
+sheet7 <- read.csv("../data_raw/Kaya_7th_20_2023_5_6_1224_KC - Sheet1.csv")
+
+sheet8 <- read.csv("../data_raw/Kaya_8th_20_2023_5_22_1935_KC - Sheet1.csv")
+
+sheet9 <- read.csv("../data_raw/Kaya_9th_20_2023_5_22_2340_KC - Sheet1.csv")
+
+sheet10 <- read.csv("../data_raw/Kaya_10th_20_2023_5_23_1115_KC - Sheet1.csv")
+
+# Now that all the data has been read in, I will bind them to make one big data frame
+
+all_data <- bind_rows(sheet1, sheet2, sheet3, sheet4, sheet5, sheet6, sheet7, sheet8, sheet9, sheet10)
+
+head(all_data)
+
+```
+
+## Cleaning the Data Frame
+
+Taking a look at the all_data data frame above, it is very messy. There are several things I would like to clean up before really analyzing the data.
+
+Things I want to accomplish:
+
+1.  **Remove columns** that don't give us information on different agencies relationship with environmental justice.
+    -   There are a lot of columns in this data frame that are do not give us any information about the process at all, such as the columns at the end that ask how long the sheet took to complete. Additionally, there are some columns that give information on the process, but are not relevant for my purpose, such as process titles and dates.
+2.  **Rename columns** to be more concise.
+    -   The column names from the spreadsheet are very long, and R interpreted spaces as dots, which will get really hard and annoying to refer to later on, so I am changed them all to shortened versions with underscores.
+3.  **Change the values** in the mitigation column to a yes or no.
+    -   So far, I have all the columns I want with names that are more concise. However, the mitigation column has values that are not consistent with the rest of the variables' values (Yes, No, No Mention, and Indeterminate). To fix this I am changing the values so "n/a" and "none" = No and anything else (descriptions of mitigation) = Yes.
+
+```{r}
+# creating a new tidy df from the all_data df with a pipe!
+tidy_ej <- all_data %>%
+  
+  # summarise all_data by the columns I want in my new df
+  summarise(Agency, EJ.Community.present., Low.Income.Community.Present., Minority.Community.Present., Are.there.disproportionate.impacts., If.there.are.impacts..what.are.they.doing.to.mitigate.) %>% 
+  
+  # piping that new df with the columns I want into the rename function, to rename each column
+  rename(agency = Agency,
+         EJ_present = EJ.Community.present.,
+         low_income_present = Low.Income.Community.Present.,
+         minority_present = Minority.Community.Present.,
+         disp_impacts = Are.there.disproportionate.impacts.,
+         mitigation_present = If.there.are.impacts..what.are.they.doing.to.mitigate.) %>% 
+  
+  # piping into the mutate function, overwritting the mitigation_present column, and using case_when to indicate what I want to replace values with
+  mutate(mitigation_present = case_when(mitigation_present == "n/a" ~ "No",
+ mitigation_present == "none" ~ "No",
+ TRUE ~ "Yes")) # since everything else besides n/a and none indicate there was mitigation efforts, I can say if the above statements are false, return "Yes"
+
+head(tidy_ej)
+```
+
+## Analyzing and Visualizing the Clean Data Frame
+
+Now that I have a clean data frame of the EJ data, I can look at it closer. I want to see how many times an agencies interacts with the environmental justice process under NEPA. First I am going to write a function that counts the 'Yes' values within a column.
+
+```{r}
+# writting the funtion
+count_yes <- function(data, column) {
+  data %>% 
+    count({{column}}, name = "Count") %>% 
+    filter({{column}} == "Yes") %>% 
+    pull(Count) %>% 
+    sum(. == "Yes")
+}
+
+# using the function
+
+count_yes(tidy_ej, EJ_present)
+# 87 EIS' reported having some EJ community present in the study area.
+
+count_yes(tidy_ej, low_income_present)
+# 73 EIS' reported having a low income community present in the project area.
+
+count_yes(tidy_ej, minority_present)
+# 75 EIS' reported having a minority community present in the project area.
+
+count_yes(tidy_ej, disp_impacts)
+# 23 EIS' reported disproportionate impacts on EJ communities.
+
+count_yes(tidy_ej, mitigation_present)
+# 86 EIS' reported implementing some kind of mitigation to decrease impacts on EJ communities.
+```
+
+## Cleaning the Data Frame
+
+There are several things I would like to clean up before really analyzing the data.
+
+1.  **Remove columns** that don't give us information on different agencies relationship with environmental justice.
+    -   There are a lot of columns in this data frame that are do not give us any information about the process at all, such as the columns at the end that ask how long the sheet took to complete. Additionally, there are some columns that give information on the process, but are not relevant for my purpose, such as process titles and dates.
+2.  **Rename columns** to be more concise.
+    -   The column names from the spreadsheet are very long, and R interpreted spaces as dots, which will get really hard and annoying to refer to later on, so I am changing them all to shortened versions with underscores.
+3.  **Change the values** in the mitigation column to a yes or no.
+    -   So far, I have all the columns I want with names that are more concise. However, the mitigation column has values that are not consistent with the rest of the variables' values (Yes, No, No Mention, and Indeterminate). To fix this I am changing the values so "n/a" and "none" = No and anything else (descriptions of mitigation) = Yes.
+
+```{r}
+# creating a new tidy df from the all_data df with a pipe!
+tidy_ej <- all_data %>%
+  
+  # summarise all_data by the columns I want in my new df
+  summarise(Agency, EJ.Community.present., Low.Income.Community.Present., Minority.Community.Present., Are.there.disproportionate.impacts., If.there.are.impacts..what.are.they.doing.to.mitigate.) %>% 
+  
+  # piping that new df with the columns I want into the rename function, to rename each column
+  rename(agency = Agency,
+         EJ_present = EJ.Community.present.,
+         low_income_present = Low.Income.Community.Present.,
+         minority_present = Minority.Community.Present.,
+         disp_impacts = Are.there.disproportionate.impacts.,
+         mitigation_present = If.there.are.impacts..what.are.they.doing.to.mitigate.) %>% 
+  
+  # piping into the mutate function, overwritting the mitigation_present column, and using case_when to indicate what I want to replace values with
+  mutate(mitigation_present = case_when(mitigation_present == "n/a" ~ "No",
+ mitigation_present == "none" ~ "No",
+ TRUE ~ "Yes")) # since everything else besides n/a and none indicate there was mitigation efforts, I can say if the above statements are false, return "Yes"
+
+head(tidy_ej)
+
+# saving the tidy data frame to my data_clean folder
+write.csv(tidy_ej, "../data_clean/tidy_ej.csv")
+```
+
+## Analyzing and Visualizing the Clean Data Frame
+
+Now that I have a clean data frame of the EJ data, I can look at it closer. I want to see how many processes that I looked through had an environmental justice community present, how many had disproportionate impacts to environmental justice communities, and how many had any mitigation plans in place. To do this I am going to write a function that counts the 'Yes' values within a column.
+
+```{r}
+# writting the funtion
+count_yes <- function(data, column) {
+  data %>% 
+    count({{column}}, name = "Count") %>% 
+    filter({{column}} == "Yes") %>% 
+    pull(Count) %>% 
+    sum(. == "Yes")
+}
+
+# using the function
+
+count_yes(tidy_ej, EJ_present)
+# 87 EIS' reported having some EJ community present in the study area.
+
+count_yes(tidy_ej, low_income_present)
+# 73 EIS' reported having a low income community present in the project area.
+
+count_yes(tidy_ej, minority_present)
+# 75 EIS' reported having a minority community present in the project area.
+
+count_yes(tidy_ej, disp_impacts)
+# 23 EIS' reported disproportionate impacts on EJ communities.
+
+count_yes(tidy_ej, mitigation_present)
+# 86 EIS' reported implementing some kind of mitigation to decrease impacts on EJ communities.
+```
+
+Looking at the results from the function, I don't think it would be effective to visualize the data as it is now, particularly because of the difference between the number of EIS' with reported disproportionate impacts, and number of EIS' with some mitigation to decrease disproportionate impacts. Although it is possible for EIS' to have disproportionate impacts and not implement mitigation, it is unlikely that there would be mitigation put in place without disproportionate impacts. As a reminder the column asking if disproportionate impacts are present contains data values "Yes", "No", "No Mention" or "Indeterminate", while the column asking if mitigation is present only contains data values "Yes" or "No", which could explain the discrepancy. I'm going to make a smaller data frame to visualize where disproportionate impacts = "Yes".
+
+```{r}
+# disproportionate impacts df
+disp_impacts_df <- tidy_ej %>% 
+  filter(disp_impacts == "Yes")
+
+disp_impacts_df
+
+# saving this data frame to my data_clean folder
+write_csv(disp_impacts_df, "../data_clean/disp_impacts_df.csv")
+```
+
+Now, I am going to use the smaller data frame to to visualize the data. I decided to visualize whether or not mitigation was present, when disproportionate impacts are present, separated by agency. I used a bar graph geom because I have all character data.
+
+```{r}
+# using ggplot to create a bar graph
+ggplot(disp_impacts_df, aes(x = mitigation_present, fill = disp_impacts)) +
+  geom_bar(fill = "green", color = "black", alpha = 0.5) +
+  facet_wrap(~ agency) +
+  labs( x = "Mitigation Present",
+        y = "Count",
+        fill = "Disproportionate Impacts?") +
+  theme_light()
+```
+
+From these graphs we can see all of the agencies that had at least one process which disproportionate impacts on an environmental justice community did implement some sort of mitigation. There are some agencies that had more processes with disproportionate impacts than others. Looking at this data, agencies with 5 or more processes with disproportionate impacts have some processes that don't implement mitigation. Conversely, agencies that had less than 5 processes with disproportionate impacts also implement mitigation for them.
+
+From the function I wrote, and through visualizing the data of disproportionate impacts, it seems like most agencies do put some sort of mitigation plan in place. This is good news for environmental justice. To make a more solid claim on if most agencies mitigate disproportionate impacts, more data would have to be analyzed.
+
+To finish off I am going to save the plot I made to my figures folder of my R project!
+
+```{r}
+# naming my plot to refer to it in ggsave
+ej_plot <- ggplot(disp_impacts_df, aes(x = mitigation_present, fill = disp_impacts)) +
+  geom_bar(fill = "green", color = "black", alpha = 0.5) +
+  facet_wrap(~ agency) +
+  labs( x = "Mitigation Present",
+        y = "Count",
+        fill = "Disproportionate Impacts?") +
+  theme_light()
+
+# using ggsave and a relative folder path to save the plot to figures
+ggsave("../figures/ej_plot.png", ej_plot)
+```
